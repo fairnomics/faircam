@@ -199,12 +199,14 @@ ctx.drawImage(video, 0, 0)
       qrImg.src = qrDataUrl
     })
 
-    const finalImage = canvas.toDataURL('image/jpeg', 0.92)
-    const lowRes = createLowRes(canvas)
+const finalImage = canvas.toDataURL('image/jpeg', 0.92)
+const lowRes = createLowRes(canvas)
+// Safari-safe save version — compressed for transmission
+const saveImage = canvas.toDataURL('image/jpeg', 0.4)
 
     setProcessingMsg('Saving to FairCam...')
     const record = {
-      id: photoId, imageData: finalImage, lowResData: lowRes,
+      id: photoId, imageData: saveImage, lowResData: lowRes,
       userId: nullifierHash, timestamp,
       latitude: location?.lat ?? null, longitude: location?.lng ?? null,
       hash, paid: false, createdAt: new Date().toISOString(),
