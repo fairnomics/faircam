@@ -7,7 +7,7 @@ import QRCode from 'qrcode'
 import dynamic from 'next/dynamic'
 
 const IDKitWidget = dynamic(
-  () => import('@worldcoin/idkit').then(m => m.IDKitWidget),
+() => import('@worldcoin/idkit').then(m => m.IDKitWidget as any),
   { ssr: false }
 )
 
