@@ -10,6 +10,8 @@ interface Photo {
   hash: string; paid: boolean
 }
 
+const CREATOR_HANDLE = '@benvu'
+
 export default function ResultPage() {
   const { query } = useRouter()
   const id = query.id as string
@@ -71,9 +73,18 @@ export default function ResultPage() {
               </div>
             </div>
 
-            {/* Image */}
+            {/* Image with overlaid preview text */}
             <div style={{ marginBottom:20, border:'1px solid #161616', overflow:'hidden', position:'relative' }}>
-              <img src={photo.imageData || photo.lowResData} alt="FairPhoto" style={{ width:'100%', display:'block' }} />
+              <img src={photo.lowResData} alt="FairPhoto Preview" style={{ width:'100%', display:'block' }} />
+              {/* Overlay text on top of blurred image */}
+              <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:10, padding:'0 20px' }}>
+                <p style={{ fontFamily:'IBM Plex Mono', fontSize:13, fontWeight:600, color:'white', letterSpacing:'0.05em', textAlign:'center', textShadow:'0 2px 8px rgba(0,0,0,0.9)', lineHeight:1.4 }}>
+                  PREVIEW ONLY — UNLOCK TO VIEW FULL IMAGE
+                </p>
+                <p style={{ fontFamily:'IBM Plex Mono', fontSize:9, color:'rgba(0,255,135,0.9)', letterSpacing:'0.06em', textAlign:'center', textShadow:'0 1px 4px rgba(0,0,0,0.9)', lineHeight:1.5 }}>
+                  CREATED BY HUMAN {CREATOR_HANDLE}<br/>SCAN FAIRMARK FOR PROOF &amp; RIGHTS
+                </p>
+              </div>
               <div style={{ position:'absolute', top:10, left:10 }}>
                 <div className="tag tag-green" style={{ background:'rgba(0,0,0,0.85)' }}>
                   <div className="pulse-dot" />FAIRMARK EMBEDDED
@@ -86,7 +97,7 @@ export default function ResultPage() {
               <p style={{ fontFamily:'IBM Plex Mono', fontSize:9, color:'var(--muted)', letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:14 }}>Verification Metadata</p>
               <div className="meta-row">
                 <span className="meta-label">Human</span>
-                <span className="meta-value" style={{ color:'var(--signal)' }}>✓ World ID Verified</span>
+                <span className="meta-value" style={{ color:'var(--signal)' }}>✓ World ID Verified · {CREATOR_HANDLE}</span>
               </div>
               <div className="meta-row">
                 <span className="meta-label">Captured</span>
