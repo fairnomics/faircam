@@ -124,11 +124,15 @@ export default function CapturePage() {
     setStep('processing')
 
     const video = videoRef.current
-    const canvas = canvasRef.current
-    canvas.width = video.videoWidth || 1280
-    canvas.height = video.videoHeight || 720
-    const ctx = canvas.getContext('2d')!
-    ctx.drawImage(video, 0, 0)
+   const canvas = canvasRef.current
+const MAX_WIDTH = 1280
+const vw = video.videoWidth || 1280
+const vh = video.videoHeight || 720
+const scale = vw > MAX_WIDTH ? MAX_WIDTH / vw : 1
+canvas.width = Math.round(vw * scale)
+canvas.height = Math.round(vh * scale)
+const ctx = canvas.getContext('2d')!
+ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
 
     const photoId = uuidv4()
     const timestamp = new Date().toISOString()
