@@ -6,10 +6,8 @@ import { v4 as uuidv4 } from 'uuid'
 import QRCode from 'qrcode'
 import dynamic from 'next/dynamic'
 
-const IDKitWidget = dynamic(
-() => import('@worldcoin/idkit').then(m => m.default as any),
-  { ssr: false }
-)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const IDKitWidget = dynamic(() => import('@worldcoin/idkit') as any, { ssr: false })
 
 type Step = 'verify' | 'camera' | 'processing' | 'done'
 
