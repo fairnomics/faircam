@@ -171,7 +171,7 @@ const load = async (photoId: string) => {
                   </div>
                 </div>
                 {/* Bottom bar with creator credit */}
-                <div style={{ position:'absolute', bottom:0, left:0, right:0, background:'rgba(0,0,0,0.75)', padding:'8px 12px' }}>
+                <div style={{ position:'absolute', bottom:'18%', left:'5%', right:'22%', background:'rgba(0,0,0,0.78)', padding:'10px 16px' }}>
                   <p style={{ fontFamily:'IBM Plex Mono', fontSize:9, color:'rgba(0,255,135,0.9)', letterSpacing:'0.05em', margin:0 }}>
                     CREATED BY HUMAN {CREATOR_HANDLE} · SCAN FAIRMARK FOR PROOF &amp; RIGHTS
                   </p>

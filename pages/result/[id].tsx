@@ -95,10 +95,9 @@ useEffect(() => {
               />
               {/* Thin green text bar at bottom — no grey box, no blur */}
               <div style={{
-                position:'absolute', bottom:0, left:0, right:0,
-                background:'rgba(0,0,0,0.72)',
-                padding:'8px 12px',
-                display:'flex', flexDirection:'column', gap:3,
+                position:'absolute', bottom:'18%', left:'5%', right:'22%',
+                background:'rgba(0,0,0,0.78)',
+                padding:'10px 16px',
               }}>
                 <p style={{ fontFamily:'IBM Plex Mono', fontSize:10, fontWeight:600, color:'white', letterSpacing:'0.05em', margin:0 }}>
                   CREATED BY HUMAN {CREATOR_HANDLE} · SCAN FAIRMARK FOR PROOF &amp; RIGHTS
