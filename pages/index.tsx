@@ -7,7 +7,10 @@ import QRCode from 'qrcode'
 import dynamic from 'next/dynamic'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const IDKitWidget = dynamic(() => import('@worldcoin/idkit') as any, { ssr: false })
+const WorldIDButton = dynamic(
+  () => import('../components/WorldIDButton'),
+  { ssr: false }
+)
 
 type Step = 'verify' | 'camera' | 'processing' | 'done'
 
@@ -264,21 +267,7 @@ export default function CapturePage() {
                     Open World App on your phone and scan the QR code to verify. No personal data is stored — only a nullifier hash.
                   </p>
                 </div>
-                <IDKitWidget
-                  app_id={APP_ID}
-                  action="verify-human"
-                  onSuccess={onWorldSuccess}
-                  verification_level={'orb' as any}
-                >
-                  {({ open }) => (
-                    <button className="btn-primary" onClick={open} style={{ width: '100%', fontSize: 13, padding: '16px' }}>
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/>
-                      </svg>
-                      Verify with World ID
-                    </button>
-                  )}
-                </IDKitWidget>
+                <WorldIDButton appId={APP_ID} onSuccess={onWorldSuccess} />
               </div>
 
               {error && (
