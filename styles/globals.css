@@ -1,0 +1,143 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ink: #0a0a0a;
+  --paper: #f5f2eb;
+  --cream: #ede8dc;
+  --signal: #00ff87;
+  --warn: #ff4444;
+  --muted: #6b6860;
+  --border: #1e1e1e;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--ink);
+  color: var(--paper);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Subtle scanline overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    0deg, transparent, transparent 3px,
+    rgba(255,255,255,0.012) 3px, rgba(255,255,255,0.012) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ── Buttons ── */
+.btn-primary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  background: var(--signal); color: #000;
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 14px 28px; border: none; cursor: pointer;
+  transition: all 0.12s ease;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+}
+.btn-primary:hover { background: #00e87a; transform: translateY(-1px); }
+.btn-primary:disabled { background: #0d2b1e; color: #1a4d35; cursor: not-allowed; transform: none; }
+
+.btn-secondary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  background: transparent; color: var(--paper);
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 500;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 13px 27px; border: 1px solid #333; cursor: pointer;
+  transition: all 0.12s ease;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+}
+.btn-secondary:hover { border-color: #555; background: rgba(255,255,255,0.04); }
+
+/* ── Panel ── */
+.panel { background: #0f0f0f; border: 1px solid var(--border); }
+
+/* ── Tags ── */
+.tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 4px 8px; border: 1px solid currentColor;
+}
+.tag-green { color: var(--signal); }
+.tag-red   { color: var(--warn); }
+.tag-muted { color: var(--muted); border-color: #2a2a2a; }
+
+/* ── Metadata rows ── */
+.meta-row {
+  display: flex; align-items: flex-start; gap: 16px;
+  padding: 11px 0; border-bottom: 1px solid #161616;
+}
+.meta-label {
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--muted); width: 88px; flex-shrink: 0; padding-top: 1px;
+}
+.meta-value {
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+  color: var(--paper); word-break: break-all; line-height: 1.5;
+}
+
+/* ── Pulse dot ── */
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+.pulse-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--signal);
+  animation: pulse 1.6s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+/* ── Corner bracket decoration ── */
+.corner-marks { position: relative; }
+.corner-marks::before, .corner-marks::after {
+  content: ''; position: absolute;
+  width: 18px; height: 18px;
+  border-color: rgba(0,255,135,0.35); border-style: solid;
+}
+.corner-marks::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+.corner-marks::after  { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+/* ── Scan line animation ── */
+@keyframes scanline {
+  0%   { top: -2px; }
+  100% { top: 100%; }
+}
+.scan-anim {
+  position: absolute; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--signal) 50%, transparent 100%);
+  opacity: 0.2; animation: scanline 4s linear infinite;
+}
+
+/* ── Fade up animations ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up   { animation: fadeUp 0.35s ease forwards; }
+.fade-up-2 { animation: fadeUp 0.35s 0.08s ease forwards; opacity: 0; }
+.fade-up-3 { animation: fadeUp 0.35s 0.16s ease forwards; opacity: 0; }
+.fade-up-4 { animation: fadeUp 0.35s 0.24s ease forwards; opacity: 0; }
+
+/* ── Spinner ── */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  border-radius: 50%; border: 2px solid #1a1a1a;
+  border-top-color: var(--signal);
+  animation: spin 0.75s linear infinite;
+}
