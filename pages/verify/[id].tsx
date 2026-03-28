@@ -14,57 +14,27 @@ type PayState = 'idle' | 'pending' | 'success' | 'error'
 
 const CREATOR_HANDLE = '@benvu'
 
-// Demo FairPhotos for the thumbnail grid
 const DEMO_PHOTOS = [
-  {
-    id: 'demo-tehran',
-    title: 'BOMB ATTACK IN TEHRAN',
-    creator: '@benvu',
-    // Dark red explosion scene
-    gradient: 'linear-gradient(135deg, #1a0000 0%, #3d0000 40%, #8b1a00 70%, #ff4400 100%)',
-    emoji: '💥',
-  },
-  {
-    id: 'demo-dubai',
-    title: 'HOTEL DRONE ATTACK IN DUBAI',
-    creator: '@benvu',
-    gradient: 'linear-gradient(135deg, #000d1a 0%, #001433 40%, #002b5c 70%, #ff6600 100%)',
-    emoji: '🔥',
-  },
-  {
-    id: 'demo-dodgers',
-    title: 'FIGHT AT DODGERS GAME',
-    creator: '@alex123',
-    gradient: 'linear-gradient(135deg, #00001a 0%, #00005c 40%, #003cbf 70%, #ffffff 100%)',
-    emoji: '⚡',
-  },
-  {
-    id: 'demo-tsunami',
-    title: 'TSUNAMI DESTROYS VILLAGE',
-    creator: '@reuters123',
-    gradient: 'linear-gradient(135deg, #001a33 0%, #003366 40%, #006699 70%, #99ccff 100%)',
-    emoji: '🌊',
-  },
+  { id: 'demo-tehran',  title: 'BOMB ATTACK IN TEHRAN',       creator: '@benvu',     img: '/demo/tehran.png',  qr: { bottom:8,  right:8  }, seed:0 },
+  { id: 'demo-dubai',   title: 'HOTEL DRONE ATTACK IN DUBAI',  creator: '@benvu',     img: '/demo/dubai.png',   qr: { bottom:12, right:10 }, seed:1 },
+  { id: 'demo-dodgers', title: 'FIGHT AT DODGERS GAME',        creator: '@alex123',   img: '/demo/dodgers.png', qr: { bottom:8,  right:12 }, seed:2 },
+  { id: 'demo-tsunami', title: 'TSUNAMI DESTROYS VILLAGE',     creator: '@reuters123', img: '/demo/tsunami.png', qr: { bottom:10, right:8  }, seed:3 },
 ]
 
-// Mini QR placeholder SVG for thumbnails
-function MiniQR() {
+function MiniQR({ seed }: { seed: number }) {
+  const patterns = [
+    [1,1,1,0,1, 1,0,1,0,0, 1,1,1,0,1, 0,0,0,1,0, 1,0,1,1,1],
+    [1,1,1,1,0, 1,0,0,0,1, 1,0,1,0,1, 1,0,0,0,1, 0,1,1,1,1],
+    [0,1,1,1,1, 1,0,1,0,0, 1,1,0,1,1, 0,0,1,0,1, 1,1,1,0,1],
+    [1,0,1,1,1, 0,1,0,1,0, 1,0,1,0,1, 0,1,0,1,0, 1,1,0,1,1],
+  ]
+  const pattern = patterns[seed % patterns.length]
   return (
-    <div style={{
-      position: 'absolute', bottom: 6, right: 6,
-      width: 36, height: 36,
-      background: 'rgba(0,0,0,0.9)',
-      border: '1.5px solid #00ff87',
-      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-      gap: 1,
-    }}>
-      {/* Simple QR pattern */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,4px)', gap: '1px' }}>
-        {[1,1,1,0,1, 1,0,1,0,0, 1,1,1,0,1, 0,0,0,1,0, 1,0,1,1,1].map((v,i) => (
-          <div key={i} style={{ width:4, height:4, background: v ? '#00ff87' : 'transparent' }} />
-        ))}
+    <div style={{ background:'rgba(0,0,0,0.92)', border:'1.5px solid #00ff87', padding:4, display:'flex', flexDirection:'column', alignItems:'center', gap:2 }}>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(5,4px)', gap:'1px' }}>
+        {pattern.map((v,i) => <div key={i} style={{ width:4, height:4, background: v ? '#00ff87' : 'transparent' }} />)}
       </div>
-      <div style={{ fontFamily:'IBM Plex Mono', fontSize:4, color:'#00ff87', letterSpacing:'0.05em', marginTop:1 }}>FAIR</div>
+      <div style={{ fontFamily:'IBM Plex Mono', fontSize:4, color:'#00ff87', letterSpacing:'0.05em' }}>FAIR</div>
     </div>
   )
 }
@@ -154,7 +124,6 @@ export default function VerifyPage() {
 
         <main style={{ maxWidth:600, margin:'0 auto', padding:'28px 20px' }}>
 
-          {/* Trust header */}
           <div className="fade-up" style={{ marginBottom:24 }}>
             <p style={{ fontFamily:'IBM Plex Mono', fontSize:9, color:'var(--signal)', letterSpacing:'0.14em', textTransform:'uppercase', marginBottom:10 }}>Authenticity Report</p>
             <h1 style={{ fontSize:26, fontWeight:600, lineHeight:1.2, marginBottom:10 }}>This photo was taken<br/>by a real human.</h1>
@@ -163,17 +132,17 @@ export default function VerifyPage() {
             </p>
           </div>
 
-          {/* Badges */}
           <div className="fade-up-2" style={{ display:'flex', flexWrap:'wrap', gap:7, marginBottom:22 }}>
             {['✓ World ID Verified', '✓ Timestamp Attested', photo.latitude ? '✓ Location Verified' : null, '✓ Hash Matched'].filter(Boolean).map(b => (
               <div key={b as string} className="tag tag-green">{b}</div>
             ))}
           </div>
 
-          {/* Image area */}
+          {/* ── IMAGE AREA ── */}
           <div className="fade-up-2" style={{ marginBottom:22, border:'1px solid #161616', overflow:'hidden', position:'relative' }}>
             {unlocked && photo.imageData ? (
               <>
+                {/* UNLOCKED: full clear image */}
                 <img src={photo.imageData} alt="Verified FairPhoto" style={{ width:'100%', display:'block' }} />
                 <div style={{ position:'absolute', top:10, left:10 }}>
                   <div className="tag tag-green" style={{ background:'rgba(0,0,0,0.88)' }}>
@@ -182,27 +151,25 @@ export default function VerifyPage() {
                 </div>
               </>
             ) : (
-              <div style={{ position:'relative' }}>
-                {/* Show the blurred image */}
+              <>
+                {/* LOCKED: image shown clearly, just with bottom text bar + lock icon */}
                 <img src={photo.lowResData} alt="Preview" style={{ width:'100%', display:'block' }} />
-                {/* Overlay on top of image */}
-                <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.55)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:12, padding:'0 24px' }}>
-                  <div style={{ background:'rgba(0,0,0,0.75)', border:'1px solid #333', padding:'16px 24px', textAlign:'center', maxWidth:320 }}>
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="1.5" style={{ display:'block', margin:'0 auto 8px' }}>
+                {/* Lock icon top-center */}
+                <div style={{ position:'absolute', top:10, right:10 }}>
+                  <div style={{ background:'rgba(0,0,0,0.82)', border:'1px solid #333', padding:'6px 10px', display:'flex', alignItems:'center', gap:6 }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2">
                       <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                     </svg>
-                    <p style={{ fontFamily:'IBM Plex Mono', fontSize:12, fontWeight:600, color:'white', letterSpacing:'0.05em', marginBottom:6 }}>
-                      PREVIEW ONLY — UNLOCK TO VIEW FULL IMAGE
-                    </p>
-                    <p style={{ fontFamily:'IBM Plex Mono', fontSize:9, color:'rgba(0,255,135,0.85)', letterSpacing:'0.05em', lineHeight:1.6 }}>
-                      CREATED BY HUMAN {CREATOR_HANDLE}<br/>SCAN FAIRMARK FOR PROOF &amp; RIGHTS
-                    </p>
+                    <span style={{ fontFamily:'IBM Plex Mono', fontSize:9, color:'var(--muted)', letterSpacing:'0.06em' }}>LOCKED</span>
                   </div>
                 </div>
-                <div style={{ position:'absolute', top:10, left:10 }}>
-                  <div className="tag tag-muted">PREVIEW ONLY</div>
+                {/* Bottom bar with creator credit */}
+                <div style={{ position:'absolute', bottom:0, left:0, right:0, background:'rgba(0,0,0,0.75)', padding:'8px 12px' }}>
+                  <p style={{ fontFamily:'IBM Plex Mono', fontSize:9, color:'rgba(0,255,135,0.9)', letterSpacing:'0.05em', margin:0 }}>
+                    CREATED BY HUMAN {CREATOR_HANDLE} · SCAN FAIRMARK FOR PROOF &amp; RIGHTS
+                  </p>
                 </div>
-              </div>
+              </>
             )}
           </div>
 
@@ -250,7 +217,6 @@ export default function VerifyPage() {
                 <p style={{ fontSize:13, color:'var(--muted)', lineHeight:1.6, marginBottom:18 }}>
                   Pay $1 USDC via Coinbase x402 to access the full-resolution certified image. Payment settles instantly on Base.
                 </p>
-
                 <div style={{ background:'#060606', border:'1px solid #1a1a1a', padding:'12px 16px', marginBottom:18 }}>
                   {[['Amount','$1.00 USDC'],['Network','Base (Coinbase)'],['Protocol','x402 / EIP-3009']].map(([k,v]) => (
                     <div key={k} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
@@ -259,20 +225,17 @@ export default function VerifyPage() {
                     </div>
                   ))}
                 </div>
-
                 {payState === 'pending' && (
                   <div style={{ display:'flex', alignItems:'center', gap:10, padding:'11px 14px', background:'rgba(0,255,135,0.04)', border:'1px solid rgba(0,255,135,0.15)', marginBottom:14 }}>
                     <div className="spinner" style={{ width:14, height:14, flexShrink:0 }} />
                     <span style={{ fontFamily:'IBM Plex Mono', fontSize:11, color:'var(--signal)' }}>Processing payment on Base...</span>
                   </div>
                 )}
-
                 {payError && (
                   <div style={{ padding:'10px 14px', border:'1px solid var(--warn)', color:'var(--warn)', fontFamily:'IBM Plex Mono', fontSize:11, marginBottom:14 }}>
                     {payError}
                   </div>
                 )}
-
                 <button className="btn-primary" onClick={handlePayment} disabled={payState === 'pending'} style={{ width:'100%', fontSize:13, padding:16 }}>
                   {payState === 'pending' ? (
                     <><div className="spinner" style={{ width:13, height:13 }} />Processing...</>
@@ -298,31 +261,36 @@ export default function VerifyPage() {
               </div>
             )}
 
-            {/* Demo FairPhoto thumbnails */}
+            {/* Demo thumbnails */}
             <div style={{ marginBottom:32 }}>
               <p style={{ fontFamily:'IBM Plex Mono', fontSize:9, color:'var(--muted)', letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:16 }}>
                 More FairPhotos — Verified Human Content
               </p>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
-                {DEMO_PHOTOS.map(dp => (
+                {DEMO_PHOTOS.map((dp) => (
                   <div
                     key={dp.id}
                     style={{ cursor:'pointer', border:'1px solid #1e1e1e', overflow:'hidden', transition:'border-color 0.15s' }}
-                    onMouseEnter={e => (e.currentTarget.style.borderColor = '#333')}
+                    onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(0,255,135,0.3)')}
                     onMouseLeave={e => (e.currentTarget.style.borderColor = '#1e1e1e')}
                   >
-                    {/* Thumbnail image area */}
-                    <div style={{ position:'relative', aspectRatio:'16/10', background: dp.gradient, display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
-                      {/* Atmospheric texture overlay */}
-                      <div style={{ position:'absolute', inset:0, backgroundImage:'radial-gradient(ellipse at 30% 40%, rgba(255,100,0,0.15) 0%, transparent 60%), radial-gradient(ellipse at 70% 60%, rgba(0,0,0,0.4) 0%, transparent 70%)' }} />
-                      <span style={{ fontSize:28, filter:'drop-shadow(0 2px 8px rgba(0,0,0,0.8))', position:'relative', zIndex:1 }}>{dp.emoji}</span>
-                      {/* Locked overlay */}
-                      <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.3)', display:'flex', alignItems:'flex-start', justifyContent:'flex-start', padding:6 }}>
-                        <div className="tag tag-muted" style={{ fontSize:8, padding:'2px 6px' }}>LOCKED</div>
+                    <div style={{ position:'relative', overflow:'hidden' }}>
+                      <img
+                        src={dp.img}
+                        alt={dp.title}
+                        style={{ width:'100%', aspectRatio:'16/10', objectFit:'cover', display:'block', filter:'brightness(0.8)' }}
+                        onError={(e) => {
+                          // Fallback if image doesn't load
+                          (e.target as HTMLImageElement).style.display = 'none'
+                        }}
+                      />
+                      <div style={{ position:'absolute', top:6, left:6 }}>
+                        <div className="tag tag-muted" style={{ fontSize:8, padding:'2px 6px', background:'rgba(0,0,0,0.75)' }}>LOCKED</div>
                       </div>
-                      <MiniQR />
+                      <div style={{ position:'absolute', bottom:dp.qr.bottom, right:dp.qr.right }}>
+                        <MiniQR seed={dp.seed} />
+                      </div>
                     </div>
-                    {/* Title and creator */}
                     <div style={{ padding:'8px 10px', background:'#0d0d0d' }}>
                       <p style={{ fontFamily:'IBM Plex Mono', fontSize:9, fontWeight:600, color:'var(--paper)', letterSpacing:'0.04em', lineHeight:1.4, marginBottom:3 }}>
                         {dp.title}
@@ -334,9 +302,6 @@ export default function VerifyPage() {
                   </div>
                 ))}
               </div>
-              <p style={{ fontFamily:'IBM Plex Mono', fontSize:9, color:'#252525', textAlign:'center', marginTop:10 }}>
-                Each FairPhoto carries cryptographic proof of human capture
-              </p>
             </div>
           </div>
 
@@ -346,7 +311,6 @@ export default function VerifyPage() {
           </div>
         </main>
       </div>
-
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </>
   )

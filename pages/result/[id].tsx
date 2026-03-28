@@ -21,7 +21,10 @@ export default function ResultPage() {
 
   useEffect(() => {
     if (!id) return
-    fetch(`/api/photo/${id}`).then(r => r.json()).then(d => { setPhoto(d); setLoading(false) }).catch(() => setLoading(false))
+    fetch(`/api/photo/${id}`)
+      .then(r => r.json())
+      .then(d => { setPhoto(d); setLoading(false) })
+      .catch(() => setLoading(false))
   }, [id])
 
   const verifyUrl = typeof window !== 'undefined' ? `${window.location.origin}/verify/${id}` : ''
@@ -73,16 +76,22 @@ export default function ResultPage() {
               </div>
             </div>
 
-            {/* Image with overlaid preview text */}
+            {/* Image — no blur, just the lowResData with a subtle green text overlay */}
             <div style={{ marginBottom:20, border:'1px solid #161616', overflow:'hidden', position:'relative' }}>
-              <img src={photo.lowResData} alt="FairPhoto Preview" style={{ width:'100%', display:'block' }} />
-              {/* Overlay text on top of blurred image */}
-              <div style={{ position:'absolute', inset:0, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:10, padding:'0 20px' }}>
-                <p style={{ fontFamily:'IBM Plex Mono', fontSize:13, fontWeight:600, color:'white', letterSpacing:'0.05em', textAlign:'center', textShadow:'0 2px 8px rgba(0,0,0,0.9)', lineHeight:1.4 }}>
-                  PREVIEW ONLY — UNLOCK TO VIEW FULL IMAGE
-                </p>
-                <p style={{ fontFamily:'IBM Plex Mono', fontSize:9, color:'rgba(0,255,135,0.9)', letterSpacing:'0.06em', textAlign:'center', textShadow:'0 1px 4px rgba(0,0,0,0.9)', lineHeight:1.5 }}>
-                  CREATED BY HUMAN {CREATOR_HANDLE}<br/>SCAN FAIRMARK FOR PROOF &amp; RIGHTS
+              <img
+                src={photo.lowResData}
+                alt="FairPhoto Preview"
+                style={{ width:'100%', display:'block' }}
+              />
+              {/* Thin green text bar at bottom — no grey box, no blur */}
+              <div style={{
+                position:'absolute', bottom:0, left:0, right:0,
+                background:'rgba(0,0,0,0.72)',
+                padding:'8px 12px',
+                display:'flex', flexDirection:'column', gap:3,
+              }}>
+                <p style={{ fontFamily:'IBM Plex Mono', fontSize:10, fontWeight:600, color:'white', letterSpacing:'0.05em', margin:0 }}>
+                  CREATED BY HUMAN {CREATOR_HANDLE} · SCAN FAIRMARK FOR PROOF &amp; RIGHTS
                 </p>
               </div>
               <div style={{ position:'absolute', top:10, left:10 }}>
