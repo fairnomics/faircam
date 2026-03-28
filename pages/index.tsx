@@ -125,20 +125,16 @@ export default function CapturePage() {
 
     const video = videoRef.current
    const canvas = canvasRef.current
-const MAX_WIDTH = 1280
-const vw = video.videoWidth || 1280
-const vh = video.videoHeight || 720
-const scale = vw > MAX_WIDTH ? MAX_WIDTH / vw : 1
-canvas.width = Math.round(vw * scale)
-canvas.height = Math.round(vh * scale)
+canvas.width = video.videoWidth || 1280
+canvas.height = video.videoHeight || 720
 const ctx = canvas.getContext('2d')!
-ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+ctx.drawImage(video, 0, 0)
 
     const photoId = uuidv4()
     const timestamp = new Date().toISOString()
 
     setProcessingMsg('Hashing image...')
-    const rawData = canvas.toDataURL('image/jpeg', 0.7)
+    const rawData = canvas.toDataURL('image/jpeg', 0.92)
     const hash = await sha256(rawData)
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
@@ -203,7 +199,7 @@ ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
       qrImg.src = qrDataUrl
     })
 
-    const finalImage = canvas.toDataURL('image/jpeg', 0.75)
+    const finalImage = canvas.toDataURL('image/jpeg', 0.92)
     const lowRes = createLowRes(canvas)
 
     setProcessingMsg('Saving to FairCam...')
@@ -221,9 +217,14 @@ ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
         body: JSON.stringify(record),
       })
       if (!res.ok) throw new Error('Save failed')
-    } catch (e) {
+} catch (e) {
       console.error('Photo save error:', e)
     }
+
+    // Store in localStorage as Safari fallback
+    try {
+      localStorage.setItem(`faircam_${photoId}`, finalImage)
+    } catch(e) {}
 
     setStep('done')
     setTimeout(() => router.push(`/result/${photoId}`), 1000)

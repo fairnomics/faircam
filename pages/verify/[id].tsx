@@ -49,9 +49,16 @@ export default function VerifyPage() {
   const [payError, setPayError] = useState<string | null>(null)
   const [unlocked, setUnlocked] = useState(false)
 
-  const load = async (photoId: string) => {
+const load = async (photoId: string) => {
     const r = await fetch(`/api/photo/${photoId}`)
     const d = await r.json()
+    // Safari fallback: check localStorage if image missing
+    if (!d.imageData) {
+      try {
+        const local = localStorage.getItem(`faircam_${photoId}`)
+        if (local) d.imageData = local
+      } catch(e) {}
+    }
     setPhoto(d)
     if (d.paid && d.imageData) setUnlocked(true)
     setLoading(false)

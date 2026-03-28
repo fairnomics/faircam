@@ -19,11 +19,21 @@ export default function ResultPage() {
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
 
-  useEffect(() => {
+useEffect(() => {
     if (!id) return
     fetch(`/api/photo/${id}`)
       .then(r => r.json())
-      .then(d => { setPhoto(d); setLoading(false) })
+      .then(d => {
+        // Safari fallback: check localStorage if image missing
+        if (!d.imageData) {
+          try {
+            const local = localStorage.getItem(`faircam_${id}`)
+            if (local) d.imageData = local
+          } catch(e) {}
+        }
+        setPhoto(d)
+        setLoading(false)
+      })
       .catch(() => setLoading(false))
   }, [id])
 
