@@ -134,7 +134,7 @@ export default function CapturePage() {
     const timestamp = new Date().toISOString()
 
     setProcessingMsg('Hashing image...')
-    const rawData = canvas.toDataURL('image/jpeg', 0.92)
+    const rawData = canvas.toDataURL('image/jpeg', 0.7)
     const hash = await sha256(rawData)
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
@@ -199,7 +199,7 @@ export default function CapturePage() {
       qrImg.src = qrDataUrl
     })
 
-    const finalImage = canvas.toDataURL('image/jpeg', 0.92)
+    const finalImage = canvas.toDataURL('image/jpeg', 0.75)
     const lowRes = createLowRes(canvas)
 
     setProcessingMsg('Saving to FairCam...')

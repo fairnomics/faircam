@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { savePhoto, PhotoRecord } from '../../lib/supabase'
 
 export const config = {
-  api: { bodyParser: { sizeLimit: '12mb' } },
+  api: { bodyParser: { sizeLimit: '20mb' } },
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
