@@ -1,4 +1,4 @@
-import { IDKitWidget, VerificationLevel } from '@worldcoin/idkit'
+import { IDKit } from '@worldcoin/idkit'
 
 interface Props {
   appId: `app_${string}`
@@ -7,13 +7,12 @@ interface Props {
 
 export default function WorldIDButton({ appId, onSuccess }: Props) {
   return (
-    <IDKitWidget
+    <IDKit
       app_id={appId}
       action="verify-human"
-      verification_level={VerificationLevel.Orb}
       onSuccess={onSuccess}
     >
-      {({ open }) => (
+      {({ open }: { open: () => void }) => (
         <button
           onClick={open}
           className="btn-primary"
@@ -25,6 +24,6 @@ export default function WorldIDButton({ appId, onSuccess }: Props) {
           Verify with World ID
         </button>
       )}
-    </IDKitWidget>
+    </IDKit>
   )
 }
