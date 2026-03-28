@@ -153,7 +153,7 @@ export default function VerifyPage() {
             ) : (
               <>
                 {/* LOCKED: image shown clearly, just with bottom text bar + lock icon */}
-                <img src={photo.lowResData} alt="Preview" style={{ width:'100%', display:'block' }} />
+                <img src={photo.imageData || photo.lowResData} alt="Preview" style={{ width:'100%', display:'block' }} />
                 {/* Lock icon top-center */}
                 <div style={{ position:'absolute', top:10, right:10 }}>
                   <div style={{ background:'rgba(0,0,0,0.82)', border:'1px solid #333', padding:'6px 10px', display:'flex', alignItems:'center', gap:6 }}>

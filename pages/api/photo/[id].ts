@@ -14,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   return res.status(200).json({
     id: photo.id,
     lowResData: photo.lowResData,
-    imageData: photo.paid ? photo.imageData : null,
+    imageData: photo.imageData,
     userId: photo.userId,
     timestamp: photo.timestamp,
     latitude: photo.latitude,

@@ -79,7 +79,7 @@ export default function ResultPage() {
             {/* Image — no blur, just the lowResData with a subtle green text overlay */}
             <div style={{ marginBottom:20, border:'1px solid #161616', overflow:'hidden', position:'relative' }}>
               <img
-                src={photo.lowResData}
+                src={photo.imageData || photo.lowResData}
                 alt="FairPhoto Preview"
                 style={{ width:'100%', display:'block' }}
               />
