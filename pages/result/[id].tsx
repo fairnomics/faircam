@@ -94,12 +94,8 @@ useEffect(() => {
                 style={{ width:'100%', display:'block' }}
               />
               {/* Thin green text bar at bottom — no grey box, no blur */}
-              <div style={{
-                position:'absolute', bottom:'18%', left:'5%', right:'22%',
-                background:'rgba(0,0,0,0.78)',
-                padding:'10px 16px',
-              }}>
-                <p style={{ fontFamily:'IBM Plex Mono', fontSize:10, fontWeight:600, color:'white', letterSpacing:'0.05em', margin:0 }}>
+             <div style={{ position:'absolute', bottom:'18%', left:'5%', right:'22%', background:'rgba(0,0,0,0.78)', padding:'10px 16px' }}>
+                <p style={{ fontFamily:'IBM Plex Mono', fontSize:9, color:'rgba(0,255,135,0.9)', letterSpacing:'0.05em', margin:0 }}>
                   CREATED BY HUMAN {CREATOR_HANDLE} · SCAN FAIRMARK FOR PROOF &amp; RIGHTS
                 </p>
               </div>
