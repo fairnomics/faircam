@@ -107,15 +107,23 @@ export default function CapturePage() {
 
   const capturePhoto = useCallback(async () => {
     if (!videoRef.current || !canvasRef.current) return
+    const video = videoRef.current
+    // Mobile fix: wait for video to have real dimensions
+    if (!video.videoWidth || video.videoWidth < 10) {
+      await new Promise<void>(resolve => setTimeout(resolve, 600))
+    }
+    if (!video.videoWidth || video.videoWidth < 10) {
+      setError('Camera not ready. Tap the button again.')
+      return
+    }
     streamRef.current?.getTracks().forEach(t => t.stop())
     setStep('processing')
 
-    const video = videoRef.current
-   const canvas = canvasRef.current
-canvas.width = video.videoWidth || 1280
-canvas.height = video.videoHeight || 720
-const ctx = canvas.getContext('2d')!
-ctx.drawImage(video, 0, 0)
+    const canvas = canvasRef.current
+    canvas.width = video.videoWidth
+    canvas.height = video.videoHeight
+    const ctx = canvas.getContext('2d')!
+    ctx.drawImage(video, 0, 0)
 
     const photoId = uuidv4()
     const timestamp = new Date().toISOString()
