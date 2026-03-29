@@ -345,37 +345,64 @@ const load = async (photoId: string) => {
           </div>
 
           <div style={{ paddingTop:20, borderTop:'1px solid #111', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-            {/* POST FOR SALE SECTION */}
-            {photo && !saleStatus?.buyer_address && !saleStatus?.for_sale && (
-              <div style={{ marginBottom: 20, padding: '18px 20px', border: '1px solid #1a1a1a', background: '#070707' }}>
-                <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 9, color: '#444', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>Post Photo Rights For Sale</p>
-                <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 11, color: '#333', marginBottom: 14 }}>Set a price and AI agents will race to purchase the rights.</p>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  {[1, 2, 3].map(price => (
-                    <button key={price} onClick={() => postForSale(price)} disabled={settingForSale}
-                      style={{ flex: 1, padding: '12px 0', background: 'rgba(0,255,135,0.06)', border: '1px solid #00ff87', color: '#00ff87', fontFamily: 'IBM Plex Mono', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
-                      ${price} USDC
-                    </button>
-                  ))}
+            {/* PHOTO RIGHTS MARKETPLACE */}
+            {photo && (
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ padding: '6px 12px', background: '#0a0a0a', border: '1px solid #1a1a1a', marginBottom: 1 }}>
+                  <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 9, color: '#333', letterSpacing: '0.14em', textTransform: 'uppercase', margin: 0 }}>Photo Rights Marketplace</p>
                 </div>
-              </div>
-            )}
-            {saleStatus?.for_sale && !saleStatus?.buyer_address && (
-              <div style={{ marginBottom: 20, padding: '18px 20px', border: '1px solid #00ff87', background: 'rgba(0,255,135,0.04)' }}>
-                <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 11, color: '#00ff87', marginBottom: 8 }}>⚡ PHOTO LISTED FOR ${saleStatus.sale_price} USDC</p>
-                <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 10, color: '#444' }}>AI agents are racing to purchase rights...</p>
-                <div style={{ marginTop: 8, display: 'flex', gap: 6 }}>
-                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#00ff87', animation: 'pulse 1s infinite' }} />
-                  <span style={{ fontFamily: 'IBM Plex Mono', fontSize: 9, color: '#333' }}>Waiting for payment on Base mainnet</span>
-                </div>
-              </div>
-            )}
-            {saleStatus?.buyer_address && (
-              <div style={{ marginBottom: 20, padding: '18px 20px', border: '1px solid #00ff87', background: 'rgba(0,255,135,0.06)' }}>
-                <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 9, color: '#00ff87', letterSpacing: '0.12em', marginBottom: 8 }}>🏆 RIGHTS SOLD</p>
-                <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 13, color: '#fff', fontWeight: 600, marginBottom: 6 }}>{saleStatus.buyer_name || saleStatus.buyer_address}</p>
-                <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 10, color: '#444' }}>Paid ${saleStatus.sale_price} USDC · {saleStatus.sold_at ? new Date(saleStatus.sold_at).toLocaleTimeString() : ''}</p>
-                <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 9, color: '#333', marginTop: 6, wordBreak: 'break-all' }}>{saleStatus.buyer_address}</p>
+
+                {/* IDLE — show price buttons */}
+                {!saleStatus?.for_sale && !saleStatus?.buyer_address && (
+                  <div style={{ padding: '18px 20px', border: '1px solid #1a1a1a', background: '#070707' }}>
+                    <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 11, color: '#555', marginBottom: 16, lineHeight: 1.6 }}>
+                      Post this photo for sale. AI agents monitoring FairCam will race to purchase the rights instantly.
+                    </p>
+                    <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+                      {[1, 2, 3].map(price => (
+                        <button key={price} onClick={() => postForSale(price)} disabled={settingForSale}
+                          style={{ flex: 1, padding: '14px 0', background: settingForSale ? '#0a0a0a' : 'rgba(0,255,135,0.05)', border: '1px solid #00ff87', color: '#00ff87', fontFamily: 'IBM Plex Mono', fontSize: 14, fontWeight: 700, cursor: settingForSale ? 'wait' : 'pointer', letterSpacing: '0.04em' }}>
+                          ${price} USDC
+                        </button>
+                      ))}
+                    </div>
+                    <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 9, color: '#2a2a2a', margin: 0 }}>Payment settles instantly on Base · Powered by x402 protocol</p>
+                  </div>
+                )}
+
+                {/* RACING — agents competing */}
+                {saleStatus?.for_sale && !saleStatus?.buyer_address && (
+                  <div style={{ padding: '20px', border: '1px solid #00ff87', background: 'rgba(0,255,135,0.03)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                      <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#00ff87', boxShadow: '0 0 8px #00ff87', flexShrink: 0 }} />
+                      <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 12, color: '#00ff87', margin: 0, fontWeight: 600 }}>LISTED FOR ${saleStatus.sale_price} USDC</p>
+                    </div>
+                    <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 11, color: '#444', marginBottom: 12 }}>⚡ AI agents are racing to purchase rights on Base...</p>
+                    <div style={{ display: 'flex', gap: 12 }}>
+                      <div style={{ flex: 1, padding: '10px', background: '#0a0a0a', border: '1px solid #1a1a1a', textAlign: 'center' }}>
+                        <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 9, color: '#333', margin: '0 0 4px 0' }}>🏢 ABC NEWS</p>
+                        <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 9, color: '#555', margin: 0 }}>HUNTING...</p>
+                      </div>
+                      <div style={{ flex: 1, padding: '10px', background: '#0a0a0a', border: '1px solid #1a1a1a', textAlign: 'center' }}>
+                        <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 9, color: '#333', margin: '0 0 4px 0' }}>📡 REUTERS</p>
+                        <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 9, color: '#555', margin: 0 }}>HUNTING...</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* SOLD — winner declared */}
+                {saleStatus?.buyer_address && (
+                  <div style={{ padding: '20px', border: '2px solid #00ff87', background: 'rgba(0,255,135,0.04)' }}>
+                    <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 9, color: '#00ff87', letterSpacing: '0.16em', marginBottom: 10 }}>🏆 PHOTO RIGHTS SOLD</p>
+                    <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 20, color: '#fff', fontWeight: 700, marginBottom: 6 }}>{saleStatus.buyer_name}</p>
+                    <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 12, color: '#00ff87', marginBottom: 10 }}>${saleStatus.sale_price}.00 USDC received</p>
+                    <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 9, color: '#333', marginBottom: 4 }}>
+                      {saleStatus.sold_at ? new Date(saleStatus.sold_at).toLocaleString() : ''}
+                    </p>
+                    <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 8, color: '#2a2a2a', wordBreak: 'break-all', margin: 0 }}>{saleStatus.buyer_address}</p>
+                  </div>
+                )}
               </div>
             )}
             <Link href="/" style={{ fontFamily:'IBM Plex Mono', fontSize:10, color:'#2a2a2a', textDecoration:'none' }}>← Create your FairPhoto</Link>
