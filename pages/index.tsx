@@ -147,6 +147,11 @@ export default function CapturePage() {
     const ctx = canvas.getContext('2d')!
     ctx.drawImage(video, 0, 0, drawW, drawH)
     const workCanvas = canvas
+    // iOS WebKit fix: test if canvas is tainted before proceeding
+    try { workCanvas.toDataURL() } catch(e: any) {
+      setError('Camera permission error on iOS. Please use Safari and allow camera access.')
+      setStep('camera'); return
+    }
     setProcessingMsg('Hashing image...')
     // Use small sample for hash — avoid toDataURL on large canvas which hangs iOS WebKit
     const hashCanvas = document.createElement('canvas')
