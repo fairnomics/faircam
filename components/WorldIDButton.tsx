@@ -1,4 +1,10 @@
-import { IDKitWidget, VerificationLevel, ISuccessResult } from '@worldcoin/idkit'
+import dynamic from 'next/dynamic'
+import { ISuccessResult } from '@worldcoin/idkit'
+
+const IDKitWidget = dynamic(
+  () => import('@worldcoin/idkit').then((mod) => mod.IDKitWidget),
+  { ssr: false }
+)
 
 interface Props {
   appId: `app_${string}`
@@ -24,7 +30,7 @@ export default function WorldIDButton({ appId, onSuccess }: Props) {
       action="faircam-verify"
       onSuccess={onSuccess}
       handleVerify={handleVerify}
-      verification_level={VerificationLevel.Orb}
+      verification_level="orb"
     >
       {({ open }) => (
         <button
