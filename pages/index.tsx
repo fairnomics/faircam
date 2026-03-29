@@ -152,7 +152,7 @@ export default function CapturePage() {
     }
 
     setProcessingMsg('Embedding Fairmark...')
-    const ctx2 = workCanvas.getContext('2d')!
+    const ctx2 = workCanvas.getContext('2d') || ctx
     try {
       const pad = 14, qrSize = 136, labelH = 50
       const panelW = qrSize + pad * 2
