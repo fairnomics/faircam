@@ -48,8 +48,14 @@ export default function VerifyPage() {
   const [txHash, setTxHash] = useState<string | null>(null)
   const [payError, setPayError] = useState<string | null>(null)
   const [unlocked, setUnlocked] = useState(false)
+  const [saleStatus, setSaleStatus] = useState<{for_sale:boolean, sale_price:number, buyer_name:string|null, buyer_address:string|null, sold_at:string|null} | null>(null)
+  const [settingForSale, setSettingForSale] = useState(false)
 
 const load = async (photoId: string) => {
+    // Load sale status
+    fetch(`/api/photos/sale/${photoId}`).then(r => r.json()).then(d => {
+      if (!d.error) setSaleStatus(d)
+    }).catch(() => {})
     const r = await fetch(`/api/photo/${photoId}`)
     const d = await r.json()
     // Safari fallback: check localStorage if image missing
@@ -108,6 +114,32 @@ const load = async (photoId: string) => {
       </div>
     </div>
   )
+
+  const postForSale = async (price: number) => {
+    setSettingForSale(true)
+    try {
+      const res = await fetch(`/api/photos/sale/${id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ price })
+      })
+      const data = await res.json()
+      if (data.success) {
+        setSaleStatus({ for_sale: true, sale_price: price, buyer_name: null, buyer_address: null, sold_at: null })
+        // Poll for buyer every 2 seconds
+        const poll = setInterval(async () => {
+          const r = await fetch(`/api/photos/sale/${id}`)
+          const d = await r.json()
+          if (d.buyer_address) {
+            setSaleStatus(d)
+            clearInterval(poll)
+          }
+        }, 2000)
+        setTimeout(() => clearInterval(poll), 300000) // stop after 5min
+      }
+    } catch(e) {}
+    setSettingForSale(false)
+  }
 
   return (
     <>
@@ -313,6 +345,39 @@ const load = async (photoId: string) => {
           </div>
 
           <div style={{ paddingTop:20, borderTop:'1px solid #111', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+            {/* POST FOR SALE SECTION */}
+            {photo && !saleStatus?.buyer_address && !saleStatus?.for_sale && (
+              <div style={{ marginBottom: 20, padding: '18px 20px', border: '1px solid #1a1a1a', background: '#070707' }}>
+                <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 9, color: '#444', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 12 }}>Post Photo Rights For Sale</p>
+                <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 11, color: '#333', marginBottom: 14 }}>Set a price and AI agents will race to purchase the rights.</p>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {[1, 2, 3].map(price => (
+                    <button key={price} onClick={() => postForSale(price)} disabled={settingForSale}
+                      style={{ flex: 1, padding: '12px 0', background: 'rgba(0,255,135,0.06)', border: '1px solid #00ff87', color: '#00ff87', fontFamily: 'IBM Plex Mono', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                      ${price} USDC
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {saleStatus?.for_sale && !saleStatus?.buyer_address && (
+              <div style={{ marginBottom: 20, padding: '18px 20px', border: '1px solid #00ff87', background: 'rgba(0,255,135,0.04)' }}>
+                <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 11, color: '#00ff87', marginBottom: 8 }}>⚡ PHOTO LISTED FOR ${saleStatus.sale_price} USDC</p>
+                <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 10, color: '#444' }}>AI agents are racing to purchase rights...</p>
+                <div style={{ marginTop: 8, display: 'flex', gap: 6 }}>
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#00ff87', animation: 'pulse 1s infinite' }} />
+                  <span style={{ fontFamily: 'IBM Plex Mono', fontSize: 9, color: '#333' }}>Waiting for payment on Base mainnet</span>
+                </div>
+              </div>
+            )}
+            {saleStatus?.buyer_address && (
+              <div style={{ marginBottom: 20, padding: '18px 20px', border: '1px solid #00ff87', background: 'rgba(0,255,135,0.06)' }}>
+                <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 9, color: '#00ff87', letterSpacing: '0.12em', marginBottom: 8 }}>🏆 RIGHTS SOLD</p>
+                <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 13, color: '#fff', fontWeight: 600, marginBottom: 6 }}>{saleStatus.buyer_name || saleStatus.buyer_address}</p>
+                <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 10, color: '#444' }}>Paid ${saleStatus.sale_price} USDC · {saleStatus.sold_at ? new Date(saleStatus.sold_at).toLocaleTimeString() : ''}</p>
+                <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 9, color: '#333', marginTop: 6, wordBreak: 'break-all' }}>{saleStatus.buyer_address}</p>
+              </div>
+            )}
             <Link href="/" style={{ fontFamily:'IBM Plex Mono', fontSize:10, color:'#2a2a2a', textDecoration:'none' }}>← Create your FairPhoto</Link>
             <span style={{ fontFamily:'IBM Plex Mono', fontSize:9, color:'#1a1a1a' }}>faircam.io</span>
           </div>
