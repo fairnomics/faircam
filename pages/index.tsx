@@ -139,6 +139,19 @@ export default function CapturePage() {
     // Nuclear option: get raw pixel matrix, draw directly to canvas — no Image/Bitmap API needed
     const qrMatrix = await QRCode.create(verifyUrl, { errorCorrectionLevel: 'M' })
 
+    // Cap canvas to 1920px BEFORE embedding — prevents iOS main thread kill on large canvases
+    const MAX_DIM = 1920
+    if (canvas.width > MAX_DIM || canvas.height > MAX_DIM) {
+      const scale = Math.min(MAX_DIM / canvas.width, MAX_DIM / canvas.height)
+      const scaled = document.createElement('canvas')
+      scaled.width = Math.round(canvas.width * scale)
+      scaled.height = Math.round(canvas.height * scale)
+      scaled.getContext('2d')!.drawImage(canvas, 0, 0, scaled.width, scaled.height)
+      canvas.width = scaled.width
+      canvas.height = scaled.height
+      canvas.getContext('2d')!.drawImage(scaled, 0, 0)
+    }
+
     setProcessingMsg('Embedding Fairmark...')
     try {
       const pad = 14, qrSize = 136, labelH = 50
@@ -204,8 +217,8 @@ export default function CapturePage() {
       console.error('Fairmark embed error:', e)
     }
 
-const finalImage = finalCanvas.toDataURL('image/jpeg', 0.92)
-const lowRes = createLowRes(finalCanvas)
+const finalImage = canvas.toDataURL('image/jpeg', 0.92)
+const lowRes = createLowRes(canvas)
 // Safari-safe save version — compressed for transmission
 // Cap canvas size on mobile to prevent toDataURL hang
     const MAX_DIM = 1920
@@ -218,7 +231,7 @@ const lowRes = createLowRes(finalCanvas)
       scaled.getContext('2d')!.drawImage(canvas, 0, 0, scaled.width, scaled.height)
       finalCanvas = scaled
     }
-    const saveImage = finalCanvas.toDataURL('image/jpeg', 0.4)
+    const saveImage = canvas.toDataURL('image/jpeg', 0.4)
 
     setProcessingMsg('Saving to FairCam...')
     const record = {
