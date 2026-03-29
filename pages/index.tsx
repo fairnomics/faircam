@@ -150,17 +150,6 @@ export default function CapturePage() {
     const qrMatrix = await QRCode.create(verifyUrl, { errorCorrectionLevel: 'M' })
 
     // Cap canvas to 1920px BEFORE embedding — prevents iOS main thread kill on large canvases
-    const MAX_DIM = 1920
-    let workCanvas: HTMLCanvasElement = canvas
-    if (canvas.width > MAX_DIM || canvas.height > MAX_DIM) {
-      const scale = Math.min(MAX_DIM / canvas.width, MAX_DIM / canvas.height)
-      const scaled = document.createElement('canvas')
-      scaled.width = Math.round(canvas.width * scale)
-      scaled.height = Math.round(canvas.height * scale)
-      scaled.getContext('2d')!.drawImage(canvas, 0, 0, scaled.width, scaled.height)
-      workCanvas = scaled
-    }
-
     setProcessingMsg('Embedding Fairmark...')
     const ctx2 = workCanvas.getContext('2d') || ctx
     try {
