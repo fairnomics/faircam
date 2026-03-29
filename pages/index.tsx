@@ -143,58 +143,69 @@ export default function CapturePage() {
     })
 
     setProcessingMsg('Embedding Fairmark...')
+    // Use a second canvas to avoid mobile Image.onload hang
     await new Promise<void>(resolve => {
-      const qrImg = new Image()
-      qrImg.crossOrigin = 'anonymous'
-      const _timeout = setTimeout(resolve, 5000)
-      qrImg.onload = () => {
-        clearTimeout(_timeout)
-        const pad = 14, qrSize = 136, labelH = 50
-        const panelW = qrSize + pad * 2
-        const panelH = qrSize + labelH + pad * 2
-        const x = canvas.width - panelW - 18
-        const y = canvas.height - panelH - 18
-
-        // Shadow
-        ctx.shadowColor = 'rgba(0,0,0,0.7)'
-        ctx.shadowBlur = 16
-        ctx.fillStyle = 'rgba(0,0,0,0.88)'
-        ctx.fillRect(x, y, panelW, panelH)
-        ctx.shadowBlur = 0
-
-        // Green border
-        ctx.strokeStyle = '#00ff87'
-        ctx.lineWidth = 1.5
-        ctx.strokeRect(x, y, panelW, panelH)
-
-        // Corner marks
-        const cm = 10
-        ctx.strokeStyle = '#00ff87'; ctx.lineWidth = 2.5
-        const corners = [[x,y,1,1],[x+panelW,y,-1,1],[x,y+panelH,1,-1],[x+panelW,y+panelH,-1,-1]]
-        corners.forEach(([cx,cy,sx,sy]) => {
-          ctx.beginPath()
-          ctx.moveTo(cx+sx*cm, cy); ctx.lineTo(cx, cy); ctx.lineTo(cx, cy+sy*cm)
-          ctx.stroke()
-        })
-
-        // QR code
-        ctx.drawImage(qrImg, x + pad, y + pad, qrSize, qrSize)
-
-        // Label bar
-        ctx.fillStyle = '#00ff87'
-        ctx.fillRect(x, y + pad + qrSize + pad, panelW, labelH)
-        ctx.fillStyle = '#000'
-        ctx.font = 'bold 10px "IBM Plex Mono", monospace'
-        ctx.textAlign = 'center'
-        ctx.fillText('FAIRCAM', x + panelW/2, y + pad + qrSize + pad + 16)
-        ctx.font = '8px "IBM Plex Mono", monospace'
-        ctx.fillText('✓ VERIFIED HUMAN', x + panelW/2, y + pad + qrSize + pad + 30)
-        ctx.font = '7.5px monospace'
-        ctx.fillText(timestamp.slice(0,16).replace('T',' ') + ' UTC', x + panelW/2, y + pad + qrSize + pad + 44)
-
-        resolve()
-      }
-      qrImg.src = qrDataUrl
+      try {
+        const qrImg = new Image()
+        qrImg.crossOrigin = 'anonymous'
+        const _timeout = setTimeout(() => {
+          // Timeout fallback — draw panel without QR image
+          const pad = 14, qrSize = 136, labelH = 50
+          const panelW = qrSize + pad * 2
+          const panelH = qrSize + labelH + pad * 2
+          const x = canvas.width - panelW - 18
+          const y = canvas.height - panelH - 18
+          ctx.fillStyle = 'rgba(0,0,0,0.88)'
+          ctx.fillRect(x, y, panelW, panelH)
+          ctx.strokeStyle = '#00ff87'; ctx.lineWidth = 1.5
+          ctx.strokeRect(x, y, panelW, panelH)
+          ctx.fillStyle = '#00ff87'
+          ctx.fillRect(x, y + pad + qrSize + pad, panelW, labelH)
+          ctx.fillStyle = '#000'
+          ctx.font = 'bold 10px "IBM Plex Mono", monospace'
+          ctx.textAlign = 'center'
+          ctx.fillText('FAIRCAM', x + panelW/2, y + pad + qrSize + pad + 16)
+          ctx.font = '8px "IBM Plex Mono", monospace'
+          ctx.fillText('✓ VERIFIED HUMAN', x + panelW/2, y + pad + qrSize + pad + 30)
+          resolve()
+        }, 3000)
+        qrImg.onload = () => {
+          clearTimeout(_timeout)
+          const pad = 14, qrSize = 136, labelH = 50
+          const panelW = qrSize + pad * 2
+          const panelH = qrSize + labelH + pad * 2
+          const x = canvas.width - panelW - 18
+          const y = canvas.height - panelH - 18
+          ctx.shadowColor = 'rgba(0,0,0,0.7)'
+          ctx.shadowBlur = 16
+          ctx.fillStyle = 'rgba(0,0,0,0.88)'
+          ctx.fillRect(x, y, panelW, panelH)
+          ctx.shadowBlur = 0
+          ctx.strokeStyle = '#00ff87'; ctx.lineWidth = 1.5
+          ctx.strokeRect(x, y, panelW, panelH)
+          const cm = 10
+          ctx.strokeStyle = '#00ff87'; ctx.lineWidth = 2.5
+          const corners = [[x,y,1,1],[x+panelW,y,-1,1],[x,y+panelH,1,-1],[x+panelW,y+panelH,-1,-1]]
+          corners.forEach(([cx,cy,sx,sy]) => {
+            ctx.beginPath()
+            ctx.moveTo(cx+sx*cm, cy); ctx.lineTo(cx, cy); ctx.lineTo(cx, cy+sy*cm)
+            ctx.stroke()
+          })
+          ctx.drawImage(qrImg, x + pad, y + pad, qrSize, qrSize)
+          ctx.fillStyle = '#00ff87'
+          ctx.fillRect(x, y + pad + qrSize + pad, panelW, labelH)
+          ctx.fillStyle = '#000'
+          ctx.font = 'bold 10px "IBM Plex Mono", monospace'
+          ctx.textAlign = 'center'
+          ctx.fillText('FAIRCAM', x + panelW/2, y + pad + qrSize + pad + 16)
+          ctx.font = '8px "IBM Plex Mono", monospace'
+          ctx.fillText('✓ VERIFIED HUMAN', x + panelW/2, y + pad + qrSize + pad + 30)
+          ctx.font = '7.5px monospace'
+          ctx.fillText(timestamp.slice(0,16).replace('T',' ') + ' UTC', x + panelW/2, y + pad + qrSize + pad + 44)
+          resolve()
+        }
+        qrImg.src = qrDataUrl
+      } catch(e) { resolve() }
     })
 
 const finalImage = canvas.toDataURL('image/jpeg', 0.92)
