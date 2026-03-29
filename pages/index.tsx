@@ -120,25 +120,24 @@ export default function CapturePage() {
     setStep('processing')
 
     const canvas = canvasRef.current
-    canvas.width = video.videoWidth
-    canvas.height = video.videoHeight
-    const ctx = canvas.getContext('2d')!
-    ctx.drawImage(video, 0, 0)
-
     const photoId = uuidv4()
     const timestamp = new Date().toISOString()
 
-    // Cap canvas IMMEDIATELY — before any toDataURL call
+    // Draw video DIRECTLY to capped canvas — never allocate full 3024x4032 canvas on mobile
     const MAX_DIM = 1920
-    let workCanvas: HTMLCanvasElement = canvas
-    if (canvas.width > MAX_DIM || canvas.height > MAX_DIM) {
-      const scale = Math.min(MAX_DIM / canvas.width, MAX_DIM / canvas.height)
-      const scaled = document.createElement('canvas')
-      scaled.width = Math.round(canvas.width * scale)
-      scaled.height = Math.round(canvas.height * scale)
-      scaled.getContext('2d')!.drawImage(canvas, 0, 0, scaled.width, scaled.height)
-      workCanvas = scaled
+    const vw = video.videoWidth
+    const vh = video.videoHeight
+    let drawW = vw, drawH = vh
+    if (vw > MAX_DIM || vh > MAX_DIM) {
+      const scale = Math.min(MAX_DIM / vw, MAX_DIM / vh)
+      drawW = Math.round(vw * scale)
+      drawH = Math.round(vh * scale)
     }
+    canvas.width = drawW
+    canvas.height = drawH
+    const ctx = canvas.getContext('2d')!
+    ctx.drawImage(video, 0, 0, drawW, drawH)
+    const workCanvas = canvas
     setProcessingMsg('Hashing image...')
     const rawData = workCanvas.toDataURL('image/jpeg', 0.5)
     const hash = await sha256(rawData)
