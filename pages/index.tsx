@@ -124,7 +124,6 @@ export default function CapturePage() {
       setError('Camera not ready. Tap the button again.')
       return
     }
-    streamRef.current?.getTracks().forEach(t => t.stop())
     setStep('processing')
     try {
 
@@ -146,6 +145,7 @@ export default function CapturePage() {
     canvas.height = drawH
     const ctx = canvas.getContext('2d')!
     ctx.drawImage(video, 0, 0, drawW, drawH)
+    streamRef.current?.getTracks().forEach(t => t.stop())
     const workCanvas = canvas
     // iOS WebKit fix: test if canvas is tainted before proceeding
     try { workCanvas.toDataURL() } catch(e: any) {
