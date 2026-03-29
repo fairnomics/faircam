@@ -25,9 +25,8 @@ function createLowRes(canvas: HTMLCanvasElement): string {
   lc.width = 480
   lc.height = Math.round(480 * canvas.height / canvas.width)
   const ctx = lc.getContext('2d')!
-  ctx.filter = 'blur(14px)'
+  // blur filter removed — not supported on iOS WebKit, causes hang
   ctx.drawImage(canvas, 0, 0, lc.width, lc.height)
-  ctx.filter = 'none'
   ctx.fillStyle = 'rgba(0,0,0,0.55)'
   ctx.fillRect(0, lc.height / 2 - 22, lc.width, 44)
   ctx.fillStyle = 'rgba(255,255,255,0.9)'
