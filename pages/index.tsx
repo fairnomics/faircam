@@ -145,7 +145,10 @@ export default function CapturePage() {
     setProcessingMsg('Embedding Fairmark...')
     await new Promise<void>(resolve => {
       const qrImg = new Image()
+      qrImg.crossOrigin = 'anonymous'
+      const _timeout = setTimeout(resolve, 5000)
       qrImg.onload = () => {
+        clearTimeout(_timeout)
         const pad = 14, qrSize = 136, labelH = 50
         const panelW = qrSize + pad * 2
         const panelH = qrSize + labelH + pad * 2
