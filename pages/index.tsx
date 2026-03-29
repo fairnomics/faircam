@@ -141,45 +141,45 @@ export default function CapturePage() {
 
     // Cap canvas to 1920px BEFORE embedding — prevents iOS main thread kill on large canvases
     const MAX_DIM = 1920
+    let workCanvas: HTMLCanvasElement = canvas
     if (canvas.width > MAX_DIM || canvas.height > MAX_DIM) {
       const scale = Math.min(MAX_DIM / canvas.width, MAX_DIM / canvas.height)
       const scaled = document.createElement('canvas')
       scaled.width = Math.round(canvas.width * scale)
       scaled.height = Math.round(canvas.height * scale)
       scaled.getContext('2d')!.drawImage(canvas, 0, 0, scaled.width, scaled.height)
-      canvas.width = scaled.width
-      canvas.height = scaled.height
-      canvas.getContext('2d')!.drawImage(scaled, 0, 0)
+      workCanvas = scaled
     }
 
     setProcessingMsg('Embedding Fairmark...')
+    const ctx2 = workCanvas.getContext('2d')!
     try {
       const pad = 14, qrSize = 136, labelH = 50
       const panelW = qrSize + pad * 2
       const panelH = qrSize + labelH + pad * 2
-      const x = canvas.width - panelW - 18
-      const y = canvas.height - panelH - 18
+      const x = workCanvas.width - panelW - 18
+      const y = workCanvas.height - panelH - 18
 
       // Draw panel background
-      ctx.shadowColor = 'rgba(0,0,0,0.7)'
-      ctx.shadowBlur = 16
-      ctx.fillStyle = 'rgba(0,0,0,0.88)'
-      ctx.fillRect(x, y, panelW, panelH)
-      ctx.shadowBlur = 0
+      ctx2.shadowColor = 'rgba(0,0,0,0.7)'
+      ctx2.shadowBlur = 16
+      ctx2.fillStyle = 'rgba(0,0,0,0.88)'
+      ctx2.fillRect(x, y, panelW, panelH)
+      ctx2.shadowBlur = 0
 
       // Green border
-      ctx.strokeStyle = '#00ff87'
-      ctx.lineWidth = 1.5
-      ctx.strokeRect(x, y, panelW, panelH)
+      ctx2.strokeStyle = '#00ff87'
+      ctx2.lineWidth = 1.5
+      ctx2.strokeRect(x, y, panelW, panelH)
 
       // Corner marks
       const cm = 10
-      ctx.strokeStyle = '#00ff87'; ctx.lineWidth = 2.5
+      ctx2.strokeStyle = '#00ff87'; ctx2.lineWidth = 2.5
       const corners = [[x,y,1,1],[x+panelW,y,-1,1],[x,y+panelH,1,-1],[x+panelW,y+panelH,-1,-1]] as [number,number,number,number][]
       corners.forEach(([cx,cy,sx,sy]) => {
-        ctx.beginPath()
-        ctx.moveTo(cx+sx*cm, cy); ctx.lineTo(cx, cy); ctx.lineTo(cx, cy+sy*cm)
-        ctx.stroke()
+        ctx2.beginPath()
+        ctx2.moveTo(cx+sx*cm, cy); ctx2.lineTo(cx, cy); ctx2.lineTo(cx, cy+sy*cm)
+        ctx2.stroke()
       })
 
       // Draw QR directly from pixel matrix — no Image/Bitmap/fetch needed, works on ALL browsers
@@ -189,8 +189,8 @@ export default function CapturePage() {
         const cellSize = qrSize / size
         for (let row = 0; row < size; row++) {
           for (let col = 0; col < size; col++) {
-            ctx.fillStyle = modules.get(row, col) ? '#000000' : '#ffffff'
-            ctx.fillRect(
+            ctx2.fillStyle = modules.get(row, col) ? '#000000' : '#ffffff'
+            ctx2.fillRect(
               x + pad + col * cellSize,
               y + pad + row * cellSize,
               cellSize,
@@ -203,22 +203,22 @@ export default function CapturePage() {
       }
 
       // Label bar
-      ctx.fillStyle = '#00ff87'
-      ctx.fillRect(x, y + pad + qrSize + pad, panelW, labelH)
-      ctx.fillStyle = '#000'
-      ctx.font = 'bold 10px "IBM Plex Mono", monospace'
-      ctx.textAlign = 'center'
-      ctx.fillText('FAIRCAM', x + panelW/2, y + pad + qrSize + pad + 16)
-      ctx.font = '8px "IBM Plex Mono", monospace'
-      ctx.fillText('\u2713 VERIFIED HUMAN', x + panelW/2, y + pad + qrSize + pad + 30)
-      ctx.font = '7.5px monospace'
-      ctx.fillText(timestamp.slice(0,16).replace('T',' ') + ' UTC', x + panelW/2, y + pad + qrSize + pad + 44)
+      ctx2.fillStyle = '#00ff87'
+      ctx2.fillRect(x, y + pad + qrSize + pad, panelW, labelH)
+      ctx2.fillStyle = '#000'
+      ctx2.font = 'bold 10px "IBM Plex Mono", monospace'
+      ctx2.textAlign = 'center'
+      ctx2.fillText('FAIRCAM', x + panelW/2, y + pad + qrSize + pad + 16)
+      ctx2.font = '8px "IBM Plex Mono", monospace'
+      ctx2.fillText('\u2713 VERIFIED HUMAN', x + panelW/2, y + pad + qrSize + pad + 30)
+      ctx2.font = '7.5px monospace'
+      ctx2.fillText(timestamp.slice(0,16).replace('T',' ') + ' UTC', x + panelW/2, y + pad + qrSize + pad + 44)
     } catch(e) {
       console.error('Fairmark embed error:', e)
     }
 
-const finalImage = canvas.toDataURL('image/jpeg', 0.92)
-const lowRes = createLowRes(canvas)
+const finalImage = workCanvas.toDataURL('image/jpeg', 0.92)
+const lowRes = createLowRes(workCanvas)
 // Safari-safe save version — compressed for transmission
 // Cap canvas size on mobile to prevent toDataURL hang
     const MAX_DIM = 1920
@@ -231,7 +231,7 @@ const lowRes = createLowRes(canvas)
       scaled.getContext('2d')!.drawImage(canvas, 0, 0, scaled.width, scaled.height)
       finalCanvas = scaled
     }
-    const saveImage = canvas.toDataURL('image/jpeg', 0.4)
+    const saveImage = workCanvas.toDataURL('image/jpeg', 0.4)
 
     setProcessingMsg('Saving to FairCam...')
     const record = {
