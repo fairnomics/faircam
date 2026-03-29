@@ -33,7 +33,7 @@ function createLowRes(canvas: HTMLCanvasElement): string {
   ctx.font = 'bold 13px "IBM Plex Mono", monospace'
   ctx.textAlign = 'center'
   ctx.fillText('PREVIEW ONLY — UNLOCK TO VIEW FULL IMAGE', lc.width / 2, lc.height / 2 + 5)
-  return lc.toDataURL('image/jpeg', 0.65)
+  return lc.toDataURL('image/jpeg', 0.4)
 }
 
 export default function CapturePage() {
@@ -138,7 +138,12 @@ export default function CapturePage() {
     ctx.drawImage(video, 0, 0, drawW, drawH)
     const workCanvas = canvas
     setProcessingMsg('Hashing image...')
-    const rawData = workCanvas.toDataURL('image/jpeg', 0.5)
+    // Use small sample for hash — avoid toDataURL on large canvas which hangs iOS WebKit
+    const hashCanvas = document.createElement('canvas')
+    hashCanvas.width = 320
+    hashCanvas.height = Math.round(320 * drawH / drawW)
+    hashCanvas.getContext('2d')!.drawImage(workCanvas, 0, 0, hashCanvas.width, hashCanvas.height)
+    const rawData = hashCanvas.toDataURL('image/jpeg', 0.3)
     const hash = await sha256(rawData)
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
@@ -214,7 +219,7 @@ export default function CapturePage() {
       console.error('Fairmark embed error:', e)
     }
 
-const finalImage = workCanvas.toDataURL('image/jpeg', 0.92)
+const finalImage = workCanvas.toDataURL('image/jpeg', 0.7)
 const lowRes = createLowRes(workCanvas)
 // Safari-safe save version — compressed for transmission
     const saveImage = workCanvas.toDataURL('image/jpeg', 0.4)
