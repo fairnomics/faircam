@@ -149,7 +149,9 @@ export default function CapturePage() {
     const workCanvas = canvas
     // iOS WebKit fix: test if canvas is tainted before proceeding
     try { workCanvas.toDataURL() } catch(e: any) {
-      setError('Camera permission error on iOS. Please use Safari and allow camera access.')
+      setProcessingMsg('Taint error: ' + (e?.message || 'unknown'))
+      await new Promise(r => setTimeout(r, 5000))
+      setError('iOS canvas error: ' + (e?.message || 'unknown'))
       setStep('camera'); return
     }
     setProcessingMsg('Hashing image...')
