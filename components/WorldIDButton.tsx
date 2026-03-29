@@ -1,8 +1,9 @@
-import dynamic from 'next/dynamic'
+import { useState, useEffect } from 'react'
 import { ISuccessResult } from '@worldcoin/idkit'
+import dynamic from 'next/dynamic'
 
 const IDKitWidget = dynamic(
-  () => import('@worldcoin/idkit').then((mod) => mod.IDKitWidget),
+  () => import('@worldcoin/idkit').then((mod) => ({ default: mod.IDKitWidget })),
   { ssr: false }
 )
 
@@ -12,6 +13,9 @@ interface Props {
 }
 
 export default function WorldIDButton({ appId, onSuccess }: Props) {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+
   const handleVerify = async (proof: ISuccessResult) => {
     const res = await fetch('/api/verify-world', {
       method: 'POST',
@@ -23,6 +27,8 @@ export default function WorldIDButton({ appId, onSuccess }: Props) {
       throw new Error(data.error || 'Verification failed')
     }
   }
+
+  if (!mounted) return null
 
   return (
     <IDKitWidget
