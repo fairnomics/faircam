@@ -14,58 +14,78 @@ export default function WorldIDButton({ appId, onSuccess }: Props) {
     setStatus('waiting')
     setErrorMsg('')
     try {
-      const { IDKit, orbLegacy } = await import('@worldcoin/idkit')
-      const action = 'faircam-verify'
-
-      // Get RP signature from backend
       const sigRes = await fetch('/api/rp-sign', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action }),
+        body: JSON.stringify({ action: 'faircam-verify' }),
       })
       const sigData = await sigRes.json()
+      if (sigData.error) throw new Error('Failed to get signing context')
 
-      const rpId = process.env.NEXT_PUBLIC_WORLD_RP_ID
+      const { IDKit, orbLegacy } = await import('@worldcoin/idkit')
 
-      const config: any = {
+      const request = await IDKit.request({
         app_id: appId,
-        action,
-        environment: 'production',
-        allow_legacy_proofs: true,
-      }
-
-      // Only add rp_context if we have a signing key configured
-      if (sigData.sig && rpId) {
-        config.rp_context = {
-          rp_id: rpId,
+        action: 'faircam-verify',
+        rp_context: {
+          rp_id: sigData.rp_id,
           nonce: sigData.nonce,
           created_at: sigData.created_at,
           expires_at: sigData.expires_at,
           signature: sigData.sig,
+        },
+        allow_legacy_proofs: true,
+        environment: 'production',
+      }).preset(orbLegacy({}))
+
+      const uri = request.connectorURI
+      setQrUrl('https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(uri))
+
+      // Poll with timeout — don't use pollUntilCompletion which throws on expire
+      let attempts = 0
+      const maxAttempts = 150 // 5 minutes at 2s intervals
+      const poll = async (): Promise<void> => {
+        if (attempts >= maxAttempts) {
+          setStatus('idle')
+          setQrUrl(null)
+          return
+        }
+        attempts++
+        try {
+          const result = await request.pollUntilCompletion()
+          if (result) {
+            setStatus('verifying')
+            setQrUrl(null)
+            const res = await fetch('/api/verify-world', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(result),
+            })
+            const data = await res.json()
+            if (data.verified) {
+              setStatus('done')
+              onSuccess(data)
+            } else {
+              setStatus('error')
+              setErrorMsg(data.detail || 'Verification failed. Try again.')
+            }
+          }
+        } catch (e: any) {
+          const msg = e?.message || ''
+          if (msg.includes('expired') || msg.includes('timeout') || msg.includes('cancel')) {
+            setStatus('idle')
+            setQrUrl(null)
+          } else if (msg.includes('pending') || msg.includes('waiting')) {
+            setTimeout(poll, 2000)
+          } else {
+            setStatus('error')
+            setErrorMsg('Scan failed. Please try again.')
+            setQrUrl(null)
+          }
         }
       }
+      setTimeout(poll, 2000)
 
-      const request = await IDKit.request(config).preset(orbLegacy({}))
-      const uri = request.connectorURI
-      setQrUrl('https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(uri))
-
-      const proof = await request.pollUntilCompletion()
-      setStatus('verifying')
-      setQrUrl(null)
-
-      const res = await fetch('/api/verify-world', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(proof),
-      })
-      const data = await res.json()
-      if (data.verified) {
-        setStatus('done')
-        onSuccess(data)
-      } else {
-        setStatus('error')
-        setErrorMsg(data.detail || 'Verification failed. Try again.')
-      }
     } catch (err: any) {
       setStatus('error')
       setErrorMsg(err.message || 'Failed to start. Try again.')
@@ -79,7 +99,7 @@ export default function WorldIDButton({ appId, onSuccess }: Props) {
   if (status === 'waiting' && qrUrl) return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
       <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 11, color: '#666', textAlign: 'center', margin: 0 }}>Scan with World App</p>
-      <img src={qrUrl} alt="World ID QR" style={{ width: 180, height: 180, background: '#fff', padding: 8 }} />
+      <img src={qrUrl} alt="World ID QR" style={{ width: 200, height: 200, background: '#fff', padding: 8 }} />
       <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 10, color: '#444', margin: 0 }}>Waiting for verification...</p>
       <button onClick={() => { setStatus('idle'); setQrUrl(null) }} style={{ background: 'none', border: 'none', color: '#444', fontFamily: 'IBM Plex Mono', fontSize: 10, cursor: 'pointer' }}>Cancel</button>
     </div>
