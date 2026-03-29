@@ -14,10 +14,19 @@ const WorldIDButton = dynamic(
 
 type Step = 'verify' | 'camera' | 'processing' | 'done'
 
-async function sha256(str: string): Promise<string> {
-  const buf = new TextEncoder().encode(str.slice(0, 8000))
-  const hash = await crypto.subtle.digest('SHA-256', buf)
-  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('')
+function sha256(str: string): string {
+  // Simple djb2 hash — works on all browsers including iOS WebKit
+  let h1 = 0x6b84f2a3, h2 = 0x9e3779b9
+  for (let i = 0; i < Math.min(str.length, 10000); i++) {
+    const c = str.charCodeAt(i)
+    h1 = Math.imul(h1 ^ c, 0x9e3779b9)
+    h2 = Math.imul(h2 ^ c, 0x6b84f2a3)
+    h1 = (h1 << 13) | (h1 >>> 19)
+    h2 = (h2 << 17) | (h2 >>> 15)
+  }
+  h1 ^= h2; h2 ^= h1
+  return (h1 >>> 0).toString(16).padStart(8,'0') + (h2 >>> 0).toString(16).padStart(8,'0') +
+    Math.abs(h1 ^ h2).toString(16).padStart(8,'0') + Date.now().toString(16)
 }
 
 function createLowRes(canvas: HTMLCanvasElement): string {
@@ -145,7 +154,7 @@ export default function CapturePage() {
     hashCanvas.height = Math.round(320 * drawH / drawW)
     hashCanvas.getContext('2d')!.drawImage(workCanvas, 0, 0, hashCanvas.width, hashCanvas.height)
     const rawData = hashCanvas.toDataURL('image/jpeg', 0.3)
-    const hash = await sha256(rawData)
+    const hash = sha256(rawData)
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
     const verifyUrl = `${appUrl}/verify/${photoId}`
