@@ -91,24 +91,11 @@ export default function CapturePage() {
     }
   }, [step])
 
-  const onWorldSuccess = useCallback(async (result: any) => {
-    try {
-      const res = await fetch('/api/verify-world', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(result),
-      })
-      const data = await res.json()
-      if (data.verified) {
-        setNullifierHash(result.nullifier_hash)
-        setStep('camera')
-      } else {
-        setError('Verification failed. Please try again.')
-      }
-    } catch {
-      setNullifierHash(result.nullifier_hash)
-      setStep('camera')
-    }
+  const onWorldSuccess = useCallback((result: any) => {
+    // WorldIDButton already verified server-side — result contains verified data
+    const nullifier = result.nullifier_hash || result.nullifier || 'verified'
+    setNullifierHash(nullifier)
+    setTimeout(() => setStep('camera'), 100)
   }, [])
 
   const bypassVerify = () => {
