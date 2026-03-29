@@ -220,17 +220,6 @@ export default function CapturePage() {
 const finalImage = workCanvas.toDataURL('image/jpeg', 0.92)
 const lowRes = createLowRes(workCanvas)
 // Safari-safe save version — compressed for transmission
-// Cap canvas size on mobile to prevent toDataURL hang
-    const MAX_DIM = 1920
-    let finalCanvas = canvas
-    if (canvas.width > MAX_DIM || canvas.height > MAX_DIM) {
-      const scale = Math.min(MAX_DIM / canvas.width, MAX_DIM / canvas.height)
-      const scaled = document.createElement('canvas')
-      scaled.width = Math.round(canvas.width * scale)
-      scaled.height = Math.round(canvas.height * scale)
-      scaled.getContext('2d')!.drawImage(canvas, 0, 0, scaled.width, scaled.height)
-      finalCanvas = scaled
-    }
     const saveImage = workCanvas.toDataURL('image/jpeg', 0.4)
 
     setProcessingMsg('Saving to FairCam...')
