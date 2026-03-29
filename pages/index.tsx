@@ -152,14 +152,22 @@ export default function CapturePage() {
       setError('Camera permission error on iOS. Please use Safari and allow camera access.')
       setStep('camera'); return
     }
-    setProcessingMsg('Hashing image...')
-    // Use small sample for hash — avoid toDataURL on large canvas which hangs iOS WebKit
-    const hashCanvas = document.createElement('canvas')
-    hashCanvas.width = 320
-    hashCanvas.height = Math.round(320 * drawH / drawW)
-    hashCanvas.getContext('2d')!.drawImage(workCanvas, 0, 0, hashCanvas.width, hashCanvas.height)
-    const rawData = hashCanvas.toDataURL('image/jpeg', 0.3)
-    const hash = sha256(rawData)
+    setProcessingMsg('Step A: hashing...')
+    let hash = 'fallback-' + Date.now()
+    try {
+      const hashCanvas = document.createElement('canvas')
+      hashCanvas.width = 160
+      hashCanvas.height = 160
+      hashCanvas.getContext('2d')!.drawImage(workCanvas, 0, 0, 160, 160)
+      setProcessingMsg('Step B: toDataURL...')
+      const rawData = hashCanvas.toDataURL('image/jpeg', 0.1)
+      setProcessingMsg('Step C: sha256...')
+      hash = sha256(rawData)
+      setProcessingMsg('Step D: hash done')
+    } catch(hashErr: any) {
+      setProcessingMsg('Hash failed: ' + hashErr?.message)
+      await new Promise(r => setTimeout(r, 3000))
+    }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
     const verifyUrl = `${appUrl}/verify/${photoId}`
