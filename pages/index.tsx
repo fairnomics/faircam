@@ -117,6 +117,7 @@ export default function CapturePage() {
     }
     streamRef.current?.getTracks().forEach(t => t.stop())
     setStep('processing')
+    try {
 
     const canvas = canvasRef.current
     const photoId = uuidv4()
@@ -250,6 +251,11 @@ const lowRes = createLowRes(workCanvas)
 
     setStep('done')
     setTimeout(() => router.push(`/result/${photoId}`), 1000)
+    } catch (fatalErr: any) {
+      console.error('[FairCam] Fatal capture error:', fatalErr)
+      setError('Processing failed: ' + (fatalErr?.message || 'unknown error'))
+      setStep('camera')
+    }
   }, [location, nullifierHash, router])
 
   return (
