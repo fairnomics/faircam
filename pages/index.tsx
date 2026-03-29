@@ -128,15 +128,25 @@ export default function CapturePage() {
     const photoId = uuidv4()
     const timestamp = new Date().toISOString()
 
+    // Cap canvas IMMEDIATELY — before any toDataURL call
+    const MAX_DIM = 1920
+    let workCanvas: HTMLCanvasElement = canvas
+    if (canvas.width > MAX_DIM || canvas.height > MAX_DIM) {
+      const scale = Math.min(MAX_DIM / canvas.width, MAX_DIM / canvas.height)
+      const scaled = document.createElement('canvas')
+      scaled.width = Math.round(canvas.width * scale)
+      scaled.height = Math.round(canvas.height * scale)
+      scaled.getContext('2d')!.drawImage(canvas, 0, 0, scaled.width, scaled.height)
+      workCanvas = scaled
+    }
     setProcessingMsg('Hashing image...')
-    const rawData = canvas.toDataURL('image/jpeg', 0.92)
+    const rawData = workCanvas.toDataURL('image/jpeg', 0.5)
     const hash = await sha256(rawData)
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
     const verifyUrl = `${appUrl}/verify/${photoId}`
 
     setProcessingMsg('Generating Fairmark QR...')
-    // Nuclear option: get raw pixel matrix, draw directly to canvas — no Image/Bitmap API needed
     const qrMatrix = await QRCode.create(verifyUrl, { errorCorrectionLevel: 'M' })
 
     // Cap canvas to 1920px BEFORE embedding — prevents iOS main thread kill on large canvases
