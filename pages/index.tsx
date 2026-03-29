@@ -136,11 +136,8 @@ export default function CapturePage() {
     const verifyUrl = `${appUrl}/verify/${photoId}`
 
     setProcessingMsg('Generating Fairmark QR...')
-    const qrDataUrl = await QRCode.toDataURL(verifyUrl, {
-      width: 160, margin: 1,
-      color: { dark: '#000000', light: '#ffffff' },
-      errorCorrectionLevel: 'M',
-    })
+    // Nuclear option: get raw pixel matrix, draw directly to canvas — no Image/Bitmap API needed
+    const qrMatrix = await QRCode.create(verifyUrl, { errorCorrectionLevel: 'M' })
 
     setProcessingMsg('Embedding Fairmark...')
     try {
@@ -172,19 +169,24 @@ export default function CapturePage() {
         ctx.stroke()
       })
 
-      // Draw QR using createImageBitmap with blob constructor — works on all mobile browsers
+      // Draw QR directly from pixel matrix — no Image/Bitmap/fetch needed, works on ALL browsers
       try {
-        const arr = qrDataUrl.split(',')
-        const mime = arr[0].match(/:(.*?);/)![1]
-        const bstr = atob(arr[1])
-        const u8 = new Uint8Array(bstr.length)
-        for (let i = 0; i < bstr.length; i++) u8[i] = bstr.charCodeAt(i)
-        const blob = new Blob([u8], { type: mime })
-        const bitmap = await createImageBitmap(blob)
-        ctx.drawImage(bitmap, x + pad, y + pad, qrSize, qrSize)
-        bitmap.close()
-      } catch {
-        // If QR draw fails, just skip it — panel still shows
+        const modules = qrMatrix.modules
+        const size = modules.size
+        const cellSize = qrSize / size
+        for (let row = 0; row < size; row++) {
+          for (let col = 0; col < size; col++) {
+            ctx.fillStyle = modules.get(row, col) ? '#000000' : '#ffffff'
+            ctx.fillRect(
+              x + pad + col * cellSize,
+              y + pad + row * cellSize,
+              cellSize,
+              cellSize
+            )
+          }
+        }
+      } catch(e) {
+        console.error('QR draw error:', e)
       }
 
       // Label bar
