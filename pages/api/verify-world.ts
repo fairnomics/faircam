@@ -14,6 +14,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Hard-fail: caller didn't send a real proof. This catches IDKit forwarding
   // rejection payloads like { success: false, error: 'verification_rejected' }.
+  // TEMP: show full body shape for IDKit success-flow debugging
+  console.log('[verify-world] FULL req.body:', JSON.stringify(req.body, null, 2))
+
   if (!nullifier_hash || !proof || !merkle_root) {
     console.warn('[verify-world] missing proof fields in request body:', Object.keys(req.body || {}))
     return res.status(400).json({ verified: false, error: 'invalid_proof_payload' })
