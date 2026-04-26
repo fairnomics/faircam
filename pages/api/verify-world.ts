@@ -20,7 +20,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const result = body.result || body
   const orbResponse = (result.responses && result.responses[0]) || result
-  const action = result.action || body.action || 'faircam-verify'
+  // Path 1: legacy /v1/verify endpoint accepts the older 'verify-human' action.
+  // The v4 IDKit flow signed 'faircam-verify' but v1's action registry uses verify-human.
+  const incoming_action = result.action || body.action || 'faircam-verify'
+  const action = 'verify-human'
+  console.log('[verify-world] mapping action', { incoming: incoming_action, sending: action })
   const nullifier_hash = orbResponse.nullifier || orbResponse.nullifier_hash
   const merkle_root = orbResponse.merkle_root
   const proof = orbResponse.proof
@@ -38,7 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const response = await fetch(
-      `https://developer.worldcoin.org/api/v2/verify/${appId}`,
+      `https://developer.worldcoin.org/api/v1/verify/${appId}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
