@@ -3,6 +3,10 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
+  // TEMP DIAGNOSTIC — remove after Bug 1 verified
+  console.log('[verify-world] req.body keys:', Object.keys(req.body || {}))
+  console.log('[verify-world] req.body:', JSON.stringify(req.body, null, 2))
+
   const { proof, nullifier_hash, merkle_root, verification_level } = req.body
   const appId = process.env.NEXT_PUBLIC_WORLD_APP_ID
 
