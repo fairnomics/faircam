@@ -28,13 +28,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // World ID 4.0: forward IDKit response to /api/v4/verify/{rp_id} on world.org.
     // Worldcoin's v4 verify endpoint requires `action` at the top level (not nested
     // inside result), so we pull it up before forwarding.
-    const action = body?.result?.action || body?.action
-    if (!action) {
-      console.warn('[verify-world] no action in IDKit response')
-      return res.status(400).json({ verified: false, error: 'missing_action' })
+    // Worldcoin's v4 verify endpoint expects all proof fields (action,
+    // responses, nonce, protocol_version, etc.) at the top level. IDKit
+    // nests them inside `result`. Flatten by spreading result over body.
+    const forwardBody = { ...body, ...(body.result || {}) }
+    if (!forwardBody.action || !forwardBody.responses) {
+      console.warn('[verify-world] missing required fields after flattening', {
+        hasAction: !!forwardBody.action,
+        hasResponses: !!forwardBody.responses,
+      })
+      return res.status(400).json({ verified: false, error: 'invalid_proof_payload' })
     }
-
-    const forwardBody = { ...body, action }
     const response = await fetch(
       `https://developer.world.org/api/v4/verify/${rpId}`,
       {
