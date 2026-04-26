@@ -53,7 +53,6 @@ export default function CapturePage() {
 
   const [step, setStep] = useState<Step>('verify')
   const [nullifierHash, setNullifierHash] = useState('')
-  const [devMode, setDevMode] = useState(false)
   const [cameraReady, setCameraReady] = useState(false)
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [locationStatus, setLocationStatus] = useState('Requesting location...')
@@ -100,18 +99,17 @@ export default function CapturePage() {
   }, [step])
 
   const onWorldSuccess = useCallback((result: any) => {
-    // WorldIDButton already verified server-side — result contains verified data
-    const nullifier = result.nullifier_hash || result.nullifier || 'verified'
+    // WorldIDButton already verified server-side — result contains verified data.
+    // Hard-block: if no valid nullifier hash is returned, do NOT proceed to camera.
+    const nullifier = result?.nullifier_hash || result?.nullifier
+    if (!nullifier || typeof nullifier !== 'string' || nullifier.length < 10) {
+      console.error('[FairCam] World ID returned no valid nullifier_hash — blocking.', result)
+      setError('World ID Orb verification required. Please verify with the Orb and try again.')
+      return
+    }
     setNullifierHash(nullifier)
     setTimeout(() => setStep('camera'), 100)
   }, [])
-
-  const bypassVerify = () => {
-    const fake = '0xdev_' + Math.random().toString(36).slice(2, 18)
-    setNullifierHash(fake)
-    setDevMode(true)
-    setStep('camera')
-  }
 
   const capturePhoto = useCallback(async () => {
     if (!videoRef.current || !canvasRef.current) return
@@ -320,11 +318,6 @@ const lowRes = createLowRes(workCanvas)
                 </div>
               )}
 
-              <div style={{ textAlign: 'center' }}>
-                <button onClick={bypassVerify} style={{ background: 'none', border: 'none', color: '#252525', fontFamily: 'IBM Plex Mono', fontSize: 10, cursor: 'pointer', letterSpacing: '0.04em' }}>
-                  [dev: skip verification]
-                </button>
-              </div>
             </div>
           )}
 
@@ -337,7 +330,7 @@ const lowRes = createLowRes(workCanvas)
                   <h1 style={{ fontSize: 28, fontWeight: 600 }}>Capture.</h1>
                   <div className="tag tag-green">
                     <div className="pulse-dot" />
-                    {devMode ? 'DEV MODE' : 'VERIFIED ✓'}
+                    VERIFIED ✓
                   </div>
                 </div>
                 <p style={{ fontFamily: 'IBM Plex Mono', fontSize: 10, color: '#333' }}>
