@@ -3,28 +3,42 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
-  const { proof, nullifier_hash, merkle_root, verification_level } = req.body
   const appId = process.env.NEXT_PUBLIC_WORLD_APP_ID
-
-  // Hard-fail: app not configured
   if (!appId) {
     console.error('[verify-world] NEXT_PUBLIC_WORLD_APP_ID env var is missing')
     return res.status(500).json({ verified: false, error: 'server_misconfigured' })
   }
 
-  // Hard-fail: caller didn't send a real proof. This catches IDKit forwarding
-  // rejection payloads like { success: false, error: 'verification_rejected' }.
-  // TEMP: show full body shape for IDKit success-flow debugging
-  console.log('[verify-world] FULL req.body:', JSON.stringify(req.body, null, 2))
+  // IDKit v4 World ID 4.0 returns: { success: true, result: { action, nonce, responses: [...] } }
+  // IDKit v3 returned the proof fields at the body root.
+  // Support both shapes.
+  const body = req.body || {}
+  if (body.success === false) {
+    console.warn('[verify-world] caller forwarded failed verification:', body.error)
+    return res.status(400).json({ verified: false, error: 'verification_failed_upstream' })
+  }
+
+  const result = body.result || body
+  const orbResponse = (result.responses && result.responses[0]) || result
+  const action = result.action || body.action || 'faircam-verify'
+  const nullifier_hash = orbResponse.nullifier || orbResponse.nullifier_hash
+  const merkle_root = orbResponse.merkle_root
+  const proof = orbResponse.proof
+  const verification_level = orbResponse.identifier || orbResponse.verification_level || 'orb'
 
   if (!nullifier_hash || !proof || !merkle_root) {
-    console.warn('[verify-world] missing proof fields in request body:', Object.keys(req.body || {}))
+    console.warn('[verify-world] missing proof fields after extraction', {
+      bodyKeys: Object.keys(body),
+      hasResult: !!body.result,
+      hasResponses: !!(result.responses),
+      extracted: { nullifier_hash: !!nullifier_hash, proof: !!proof, merkle_root: !!merkle_root },
+    })
     return res.status(400).json({ verified: false, error: 'invalid_proof_payload' })
   }
 
   try {
     const response = await fetch(
-      `https://developer.worldcoin.org/api/v1/verify/${appId}`,
+      `https://developer.worldcoin.org/api/v2/verify/${appId}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -33,19 +47,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           merkle_root,
           proof,
           verification_level,
-          action: 'faircam-verify',
+          action,
+          signal_hash: orbResponse.signal_hash,
         }),
       }
     )
 
-    // Detect HTML / non-JSON responses without crashing
     const contentType = response.headers.get('content-type') || ''
     if (!contentType.includes('application/json')) {
       const text = await response.text()
       console.error('[verify-world] Worldcoin API returned non-JSON', {
         status: response.status,
         contentType,
-        bodyPreview: text.slice(0, 200),
+        bodyPreview: text.slice(0, 300),
       })
       return res.status(502).json({ verified: false, error: 'worldcoin_api_invalid_response' })
     }
@@ -53,6 +67,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const data = await response.json()
 
     if (response.ok && data.success) {
+      console.log('[verify-world] ✓ verified', { nullifier_hash: nullifier_hash.slice(0, 12) + '...' })
       return res.status(200).json({ verified: true, nullifier_hash })
     }
 
