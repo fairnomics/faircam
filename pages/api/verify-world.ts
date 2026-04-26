@@ -25,13 +25,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    // World ID 4.0: forward IDKit response as-is to /api/v4/verify/{rp_id} on world.org.
+    // World ID 4.0: forward IDKit response to /api/v4/verify/{rp_id} on world.org.
+    // Worldcoin's v4 verify endpoint requires `action` at the top level (not nested
+    // inside result), so we pull it up before forwarding.
+    const action = body?.result?.action || body?.action
+    if (!action) {
+      console.warn('[verify-world] no action in IDKit response')
+      return res.status(400).json({ verified: false, error: 'missing_action' })
+    }
+
+    const forwardBody = { ...body, action }
     const response = await fetch(
       `https://developer.world.org/api/v4/verify/${rpId}`,
       {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(body),
+        body: JSON.stringify(forwardBody),
       }
     )
 
